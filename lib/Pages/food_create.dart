@@ -18,6 +18,10 @@ class _FoodCreate extends State<FoodCreate> {
 
   final _formKey = GlobalKey<FormState>();
 
+  FocusNode titleTextFormField = new FocusNode();
+  FocusNode descriptionTextForField = new FocusNode();
+  FocusNode priceTextFormField = FocusNode();
+
   @override
   void dispose() {
     _group.dispose();
@@ -32,7 +36,7 @@ class _FoodCreate extends State<FoodCreate> {
         key: _formKey,
         child: Container(
           margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-          child: Column(
+          child: ListView(
             children: <Widget>[
               Container(
                 decoration:
@@ -45,7 +49,10 @@ class _FoodCreate extends State<FoodCreate> {
                       hintText: 'Group',
                       hintStyle: TextStyle(fontSize: 11, letterSpacing: 1)),
                   onSaved: (String value) {},
-                  validator: (String value) {
+                  onFieldSubmitted: (String value) {
+                    FocusScope.of(context).requestFocus(titleTextFormField);
+                  },
+                  validator: (value) {
                     return value.isEmpty ? 'Please enter the group' : null;
                   },
                 ),
@@ -55,6 +62,7 @@ class _FoodCreate extends State<FoodCreate> {
                     BoxDecoration(borderRadius: BorderRadius.circular(15.0)),
                 child: TextFormField(
                   controller: _title,
+                  focusNode: titleTextFormField,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                       icon: Icon(Icons.title),
@@ -63,7 +71,10 @@ class _FoodCreate extends State<FoodCreate> {
                         fontSize: 11.0,
                         letterSpacing: 1,
                       )),
-                  onSaved: (String value) {},
+                  onFieldSubmitted: (value) {
+                    FocusScope.of(context)
+                        .requestFocus(descriptionTextForField);
+                  },
                   validator: (String value) {
                     return value.isEmpty ? 'Please enter the title' : null;
                   },
@@ -74,6 +85,7 @@ class _FoodCreate extends State<FoodCreate> {
                     BoxDecoration(borderRadius: BorderRadius.circular(15.0)),
                 child: TextFormField(
                   controller: _description,
+                  focusNode: descriptionTextForField,
                   textInputAction: TextInputAction.next,
                   maxLines: 3,
                   decoration: InputDecoration(
@@ -83,7 +95,10 @@ class _FoodCreate extends State<FoodCreate> {
                         fontSize: 11.0,
                         letterSpacing: 1,
                       )),
-                  onSaved: (String value) {},
+                  onFieldSubmitted: (value) {
+                    descriptionTextForField.unfocus();
+                    FocusScope.of(context).requestFocus(priceTextFormField);
+                  },
                   validator: (String value) {
                     return value.isEmpty
                         ? 'Please enter the description'
@@ -92,16 +107,21 @@ class _FoodCreate extends State<FoodCreate> {
                 ),
               ),
               Container(
-                margin: EdgeInsets.only(bottom: 20.0),
+                margin: EdgeInsets.only(bottom: 30.0),
                 decoration:
                     BoxDecoration(borderRadius: BorderRadius.circular(15.0)),
                 child: TextFormField(
                   controller: _price,
+                  focusNode: priceTextFormField,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                       icon: Icon(Icons.ac_unit),
                       hintText: 'Price',
                       hintStyle: TextStyle(letterSpacing: 1, fontSize: 11)),
                   textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (value) {
+                    _createFood();
+                  },
                   validator: (String value) {
                     return value.isEmpty ? 'Please enter the perice' : null;
                   },
@@ -111,24 +131,13 @@ class _FoodCreate extends State<FoodCreate> {
                 width: 200,
                 child: RaisedButton(
                   child: Text('Create'),
+                  shape: RoundedRectangleBorder(
+                      side: BorderSide.none,
+                      borderRadius: BorderRadius.circular(5.0)),
                   color: Colors.blueAccent,
+                  textColor: Colors.white,
                   onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      Food food = Food(_group.value.text, _title.value.text,
-                          _description.value.text, double.parse(_price.text));
-                      FoodModel.addFood(food);
-
-                      _group.clear();
-                      _title.clear();
-                      _description.clear();
-                      _price.clear();
-
-                      Fluttertoast.showToast(
-                        msg: 'The food has been created successfully',
-                        toastLength: Toast.LENGTH_SHORT,
-                        fontSize: 12,
-                      );
-                    }
+                    _createFood();
                   },
                 ),
               )
@@ -137,5 +146,24 @@ class _FoodCreate extends State<FoodCreate> {
         ),
       ),
     );
+  }
+
+  void _createFood() {
+    if (_formKey.currentState.validate()) {
+      Food food = Food(_group.value.text, _title.value.text,
+          _description.value.text, double.parse(_price.text));
+      FoodModel.addFood(food);
+
+      _group.clear();
+      _title.clear();
+      _description.clear();
+      _price.clear();
+
+      Fluttertoast.showToast(
+        msg: 'The food has been created successfully',
+        toastLength: Toast.LENGTH_SHORT,
+        fontSize: 12,
+      );
+    }
   }
 }
